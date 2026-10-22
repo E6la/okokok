@@ -1,0 +1,14 @@
+[Unit]
+Description=dobro-bot Telegram bot
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/okokok/dobro-bot
+ExecStart=/opt/okokok/dobro-bot/.venv/bin/python bot.py
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
