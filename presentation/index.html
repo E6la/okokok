@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Буквария — электронные буквы</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;800&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0b0d17;
+    --panel: #151a2e;
+    --text: #eef1ff;
+    --muted: #9aa3c7;
+    --accent: #7cf3c8;
+    --accent2: #8b7bff;
+    --hot: #ff6fa8;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: Inter, system-ui, sans-serif;
+    overflow: hidden;
+  }
+  .deck { position: relative; height: 100%; }
+  .slide {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column; justify-content: center;
+    padding: 6vh 8vw;
+    opacity: 0; pointer-events: none;
+    transform: translateX(40px);
+    transition: opacity .5s ease, transform .5s ease;
+    background:
+      radial-gradient(circle at 85% 15%, rgba(139,123,255,.18), transparent 45%),
+      radial-gradient(circle at 10% 90%, rgba(124,243,200,.12), transparent 40%);
+  }
+  .slide.active { opacity: 1; pointer-events: auto; transform: none; }
+  h1, h2 { font-family: Unbounded, sans-serif; line-height: 1.1; }
+  h1 { font-size: clamp(40px, 8vw, 110px); font-weight: 800; }
+  h2 { font-size: clamp(28px, 4.5vw, 56px); font-weight: 800; margin-bottom: 4vh; }
+  p.lead { font-size: clamp(18px, 2.2vw, 28px); color: var(--muted); max-width: 60ch; margin-top: 3vh; }
+  .grad {
+    background: linear-gradient(90deg, var(--accent), var(--accent2), var(--hot));
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .tag {
+    display: inline-block; font-size: 14px; letter-spacing: .15em; text-transform: uppercase;
+    color: var(--accent); border: 1px solid var(--accent); border-radius: 99px;
+    padding: 6px 14px; margin-bottom: 3vh; align-self: flex-start;
+  }
+  .grid { display: grid; gap: 20px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+  .card {
+    background: var(--panel); border: 1px solid rgba(255,255,255,.06);
+    border-radius: 18px; padding: 24px;
+  }
+  .card .big { font-family: Unbounded, sans-serif; font-size: 44px; margin-bottom: 10px; }
+  .card h3 { font-size: 20px; margin-bottom: 8px; }
+  .card p { color: var(--muted); line-height: 1.5; }
+  .letters { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 5vh; }
+  .letter {
+    width: clamp(56px, 8vw, 96px); aspect-ratio: 1;
+    display: grid; place-items: center;
+    font-family: Unbounded, sans-serif; font-size: clamp(28px, 4vw, 52px); font-weight: 800;
+    border-radius: 16px; background: var(--panel);
+    border: 1px solid rgba(124,243,200,.3);
+    color: var(--accent);
+    text-shadow: 0 0 18px rgba(124,243,200,.7);
+    animation: glow 2.4s ease-in-out infinite;
+  }
+  .letter:nth-child(2n) { color: var(--accent2); text-shadow: 0 0 18px rgba(139,123,255,.8); animation-delay: .4s; }
+  .letter:nth-child(3n) { color: var(--hot); text-shadow: 0 0 18px rgba(255,111,168,.8); animation-delay: .8s; }
+  @keyframes glow { 50% { transform: translateY(-6px); filter: brightness(1.3); } }
+  .price .card { text-align: center; }
+  .price .amount { font-family: Unbounded, sans-serif; font-size: 40px; margin: 12px 0; }
+  .price .featured { border-color: var(--accent); box-shadow: 0 0 40px rgba(124,243,200,.15); }
+  ul.steps { list-style: none; counter-reset: s; display: grid; gap: 18px; font-size: clamp(18px, 2vw, 24px); }
+  ul.steps li { counter-increment: s; display: flex; gap: 18px; align-items: center; }
+  ul.steps li::before {
+    content: counter(s); flex: none;
+    width: 48px; height: 48px; border-radius: 50%;
+    display: grid; place-items: center;
+    background: var(--accent); color: var(--bg); font-weight: 800;
+  }
+  .domain {
+    font-family: Unbounded, sans-serif; font-size: clamp(30px, 6vw, 80px);
+    margin: 2vh 0;
+  }
+  .cta {
+    display: inline-block; margin-top: 4vh; align-self: flex-start;
+    background: var(--accent); color: var(--bg); font-weight: 600;
+    padding: 16px 32px; border-radius: 99px; text-decoration: none; font-size: 20px;
+  }
+  .nav {
+    position: fixed; bottom: 20px; right: 24px; display: flex; gap: 10px; align-items: center;
+    color: var(--muted); font-size: 14px; z-index: 5;
+  }
+  .nav button {
+    background: var(--panel); color: var(--text); border: 1px solid rgba(255,255,255,.1);
+    width: 44px; height: 44px; border-radius: 50%; font-size: 18px; cursor: pointer;
+  }
+  .progress { position: fixed; top: 0; left: 0; height: 4px; background: linear-gradient(90deg, var(--accent), var(--hot)); transition: width .4s; z-index: 5; }
+  @media (max-width: 600px) {
+    .slide { padding: 6vh 16px 80px; overflow-y: auto; justify-content: flex-start; padding-top: 10vh; }
+  }
+</style>
+</head>
+<body>
+<div class="progress" id="progress"></div>
+<div class="deck" id="deck">
+
+  <!-- 1. Титул -->
+  <section class="slide active">
+    <span class="tag">Презентация проекта</span>
+    <h1><span class="grad">Буквария</span></h1>
+    <p class="lead">Магазин электронных букв. Каждая буква — уникальный цифровой объект, который можно купить, скачать и использовать где угодно.</p>
+    <div class="letters">
+      <div class="letter">Б</div><div class="letter">У</div><div class="letter">К</div>
+      <div class="letter">В</div><div class="letter">А</div><div class="letter">Р</div>
+      <div class="letter">И</div><div class="letter">Я</div>
+    </div>
+  </section>
+
+  <!-- 2. Проблема -->
+  <section class="slide">
+    <span class="tag">Проблема</span>
+    <h2>Текст повсюду, но он <span class="grad">скучный</span></h2>
+    <div class="grid">
+      <div class="card"><div class="big">😴</div><h3>Однообразие</h3><p>Все пользуются одними и теми же стандартными шрифтами.</p></div>
+      <div class="card"><div class="big">⏳</div><h3>Дорого и долго</h3><p>Заказать у дизайнера уникальные буквы для логотипа — недели и тысячи рублей.</p></div>
+      <div class="card"><div class="big">🧩</div><h3>Нет одной буквы</h3><p>Нельзя купить только «Ж» — приходится брать целый шрифт.</p></div>
+    </div>
+  </section>
+
+  <!-- 3. Решение -->
+  <section class="slide">
+    <span class="tag">Решение</span>
+    <h2>Покупайте буквы <span class="grad">поштучно</span></h2>
+    <p class="lead">В «Букварии» каждая буква продаётся отдельно: светящиеся, анимированные, 3D, пиксельные, рукописные. Собирайте своё имя, логотип или слово из букв разных авторов.</p>
+    <div class="letters">
+      <div class="letter">А</div><div class="letter">Ж</div><div class="letter">Ы</div><div class="letter">Ё</div><div class="letter">Z</div><div class="letter">&amp;</div>
+    </div>
+  </section>
+
+  <!-- 4. Что получает покупатель -->
+  <section class="slide">
+    <span class="tag">Продукт</span>
+    <h2>Что внутри каждой буквы</h2>
+    <div class="grid">
+      <div class="card"><div class="big">SVG</div><h3>Вектор</h3><p>Масштабируется без потери качества — от иконки до билборда.</p></div>
+      <div class="card"><div class="big">PNG</div><h3>Растр</h3><p>Прозрачный фон, готово для соцсетей и презентаций.</p></div>
+      <div class="card"><div class="big">GIF</div><h3>Анимация</h3><p>Живые буквы для сторис, стримов и сайтов.</p></div>
+      <div class="card"><div class="big">©</div><h3>Лицензия</h3><p>Право на коммерческое использование в каждой покупке.</p></div>
+    </div>
+  </section>
+
+  <!-- 5. Для кого -->
+  <section class="slide">
+    <span class="tag">Аудитория</span>
+    <h2>Для кого «Буквария»</h2>
+    <div class="grid">
+      <div class="card"><h3>🎨 Дизайнеры</h3><p>Быстрые акценты и заголовки без рисования с нуля.</p></div>
+      <div class="card"><h3>📱 Блогеры</h3><p>Уникальные обложки, ники и превью.</p></div>
+      <div class="card"><h3>🏪 Малый бизнес</h3><p>Логотип из готовых букв за пару минут.</p></div>
+      <div class="card"><h3>🎁 Подарки</h3><p>Имя близкого человека в эксклюзивном стиле.</p></div>
+    </div>
+  </section>
+
+  <!-- 6. Цены -->
+  <section class="slide price">
+    <span class="tag">Цены</span>
+    <h2>Простые тарифы</h2>
+    <div class="grid">
+      <div class="card"><h3>Одна буква</h3><div class="amount">49 ₽</div><p>Любая буква в 3 форматах</p></div>
+      <div class="card featured"><h3>Слово</h3><div class="amount">299 ₽</div><p>До 10 букв + анимация</p></div>
+      <div class="card"><h3>Подписка</h3><div class="amount">990 ₽/мес</div><p>Безлимит на весь каталог</p></div>
+    </div>
+  </section>
+
+  <!-- 7. Как купить -->
+  <section class="slide">
+    <span class="tag">Как это работает</span>
+    <h2>Три шага до своей буквы</h2>
+    <ul class="steps">
+      <li>Выберите стиль и букву в каталоге</li>
+      <li>Соберите слово в конструкторе и посмотрите превью</li>
+      <li>Оплатите и сразу скачайте файлы</li>
+    </ul>
+  </section>
+
+  <!-- 8. Авторам -->
+  <section class="slide">
+    <span class="tag">Маркетплейс</span>
+    <h2>Художники <span class="grad">зарабатывают</span> с нами</h2>
+    <p class="lead">Любой дизайнер может загрузить свои буквы и получать 70% с каждой продажи. Чем больше авторов — тем богаче каталог.</p>
+  </section>
+
+  <!-- 9. Финал -->
+  <section class="slide">
+    <span class="tag">Название сайта</span>
+    <h1><span class="grad">Буквария</span></h1>
+    <div class="domain">bukvaria.ru</div>
+    <p class="lead">Каждая буква — особенная.</p>
+    <a class="cta" href="#" onclick="go(0);return false;">Купить первую букву →</a>
+  </section>
+
+</div>
+
+<div class="nav">
+  <span id="counter"></span>
+  <button onclick="go(cur-1)" aria-label="Назад">←</button>
+  <button onclick="go(cur+1)" aria-label="Вперёд">→</button>
+</div>
+
+<script>
+  const slides = document.querySelectorAll('.slide');
+  let cur = 0;
+  function go(n) {
+    n = Math.max(0, Math.min(slides.length - 1, n));
+    slides[cur].classList.remove('active');
+    cur = n;
+    slides[cur].classList.add('active');
+    document.getElementById('counter').textContent = (cur + 1) + ' / ' + slides.length;
+    document.getElementById('progress').style.width = ((cur + 1) / slides.length * 100) + '%';
+  }
+  document.addEventListener('keydown', e => {
+    if (['ArrowRight', 'PageDown', ' '].includes(e.key)) go(cur + 1);
+    if (['ArrowLeft', 'PageUp'].includes(e.key)) go(cur - 1);
+  });
+  let x0 = null;
+  document.addEventListener('touchstart', e => x0 = e.touches[0].clientX);
+  document.addEventListener('touchend', e => {
+    if (x0 === null) return;
+    const dx = e.changedTouches[0].clientX - x0;
+    if (Math.abs(dx) > 50) go(cur + (dx < 0 ? 1 : -1));
+    x0 = null;
+  });
+  go(0);
+</script>
+</body>
+</html>
