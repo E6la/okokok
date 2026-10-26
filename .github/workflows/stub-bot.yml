@@ -37,4 +37,4 @@ jobs:
       - name: Run bot
         env:
           BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
-        run: timeout 5h50m python bot.py || [ $? -eq 124 ]
+        run: timeout 350m python bot.py || [ $? -eq 124 ]
