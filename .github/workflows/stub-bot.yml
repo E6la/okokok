@@ -1,0 +1,40 @@
+name: stub-bot
+
+on:
+  # Одна задача в GitHub Actions живёт максимум 6 часов,
+  # поэтому бот работает «сменами»: каждые 5 часов стартует новая.
+  schedule:
+    - cron: "0 */5 * * *"
+  # Кнопка «Run workflow» во вкладке Actions для ручного запуска.
+  workflow_dispatch:
+
+# Новый запуск останавливает старый, чтобы два бота не опрашивали Telegram
+# одновременно (иначе будет ошибка Conflict от getUpdates).
+concurrency:
+  group: telegram-bot
+  cancel-in-progress: true
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 355
+    defaults:
+      run:
+        working-directory: stub-bot
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: stub-bot/requirements.txt
+
+      - run: pip install -r requirements.txt
+
+      # Бот сам завершается чуть раньше лимита в 6 часов,
+      # чтобы задача закончилась успешно, а не по таймауту.
+      - name: Run bot
+        env:
+          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+        run: timeout 5h50m python bot.py || [ $? -eq 124 ]
